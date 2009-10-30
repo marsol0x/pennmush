@@ -1248,10 +1248,9 @@ See also: decrypt(), encode64()
   You can also limit the range of the dbrefs searched by giving
   <begin> and <end>.
 & EQ()
-  eq(<number1>, <number2>[, <number3>])
+  eq(<number1>, <number2>)
 
-  Takes two or more numbers, and returns 1 if they are all equal,
-  0 otherwise.
+  Takes two numbers, and returns 1 if they are equal, 0 otherwise.
   
 See also: neq()
 & ESCAPE()
@@ -1638,15 +1637,15 @@ See also: match(), matchall(), grab(), regmatch()
   grep()/wildgrep()/regrep() are case-sensitive. 
   grepi()/wildgrepi()/regrepi() are case-insensitive.
 & GT()
-  gt(<num>, <num>[, <num>])
+  gt(<num>, <num>)
 
-  Takes two or more numbers, and returns 1 if and only if each number
-  is greater than to the number after it. 0 otherwise
+  Takes two numbers, and returns 1 if and only if the first is greater
+  than the second, and 0 otherwise.
 & GTE()
-  gte(<num>, <num>[, <num>])
+  gte(<num>, <num>)
 
-  Takes two or more numbers, and returns 1 if and only if each number
-  is greater than or equal to the number after it. 0 otherwise
+  Takes two numbers, and returns 1 if and only if the first is greater
+  than or equal to the second, and 0 otherwise.
 & HASATTR()
 & HASATTRP()
 & HASATTRVAL()
@@ -2183,9 +2182,8 @@ See also: align(), center(), rjust()
   3).  Using @function, one can easily write ladd, lsub, etc as per
   TinyMUSH.
 
-  Supported <op>'s are:
-  add and band bor bxor dist2d dist3d div eq fdiv gt gte lt lte max mean
-  median min modulo mul nand neq nor or remainder stddev sub xor
+  Supported <op>'s are: add and band bor bxor dist2d dist3d div fdiv
+  max mean median min modulo mul nand nor or remainder stddev sub xor
 
   Examples:
   >think lmath(add, 1|2|3, |)
@@ -2467,23 +2465,15 @@ See also: pos()
 
   stats() is an alias for lstats().
 & LT()
-  lt(<num>, <num>[, <num>])
+  lt(<num>, <num>)
 
-  Takes two or more numbers, and returns 1 if and only if each number
-  is less than the number after it. 0 otherwise
-
-  Examples:
-  > th lt(1,2)
-  1
-  > th lt(1,2,3)
-  1
-  > th lt(1,3,2)
-  0
+  Takes two numbers, and returns 1 if and only if the first is less
+  than the second, and 0 otherwise.
 & LTE()
-  lt(<num>, <num>[, <num>])
+  lte(<num>, <num>)
 
-  Takes two or more numbers, and returns 1 if and only if each number
-  is less than or equal to the number after it. 0 otherwise
+  Takes two numbers, and returns 1 if and only if the first is less
+  than or equal to the second, and 0 otherwise.
 & LVCON()
   lvcon(<object>)
 
@@ -2891,9 +2881,9 @@ See also: anonymous attributes
   object 1 is carrying object 2.
   You must control at least one of the objects.
 & NEQ()
-  neq(<num1>, <num2>[, <num2>, ...])
+  neq(<num1>, <num2>)
 
-  Basically the same as [not(eq(<num1>,<num2>[,<num3>, ...]))].
+  Basically the same as [not(eq(<num1>,<num2>))].
 
 See also: eq(), not()
 & NEXT()
@@ -4491,21 +4481,6 @@ See also: @tel
 
   Players can use terminfo() on their own connections. Using it on
   other players is restricted to see_all objects.  
-& TESTLOCK()
-  testlock(<lock>, <victim>)
-
-  testlock() returns 1 if the <victim> would pass the lock defined in <lock>
-  as run by the executor, and 0 if it would fail.
-
-  testlock() evaluates the lock from executor's perspective.
-
-  For example:
-      think testlock(TYPE^PLAYER&FLAG^WIZARD, *Gandalf)
-      > 1
-      think testlock(TYPE^PLAYER&FLAG^WIZARD, *Bilbo)
-      > 0
-  
-See also: @lock, locktypes
 & TEXTFILE()
 & TEXTENTRIES()
 & dynhelp()

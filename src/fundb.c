@@ -36,9 +36,18 @@ static lock_type get_locktype(char *str);
 extern struct db_stat_info *get_stats(dbref owner);
 static int lattr_helper(dbref player, dbref thing, dbref parent,
                         char const *pattern, ATTR *atr, void *args);
-static dbref dbwalk(char *buff, char **bp, dbref executor, dbref enactor,
-                    int type, dbref loc, dbref after, int skipdark,
-                    int start, int count, int *retcount);
+static dbref
+
+
+
+
+
+
+
+dbwalk(char *buff, char **bp, dbref executor, dbref enactor,
+       int type, dbref loc, dbref after, int skipdark,
+       int start, int count, int *retcount);
+
 
 const char *
 do_get_attrib(dbref executor, dbref thing, const char *attrib)
@@ -328,7 +337,7 @@ FUNCTION(fun_eval)
     add_check("fun_eval.attr_value");
     process_expression(buff, bp, &tp, thing, executor, executor,
                        PE_DEFAULT, PT_DEFAULT, pe_info);
-    mush_free(tbuf, "fun_eval.attr_value");
+    mush_free((Malloc_t) tbuf, "fun_eval.attr_value");
     return;
   } else if (a || !Can_Examine(executor, thing)) {
     safe_str(T(e_atrperm), buff, bp);
@@ -368,7 +377,7 @@ FUNCTION(fun_get_eval)
     add_check("fun_eval.attr_value");
     process_expression(buff, bp, &tp, thing, executor, executor,
                        PE_DEFAULT, PT_DEFAULT, pe_info);
-    mush_free(tbuf, "fun_eval.attr_value");
+    mush_free((Malloc_t) tbuf, "fun_eval.attr_value");
     return;
   } else if (a || !Can_Examine(executor, thing)) {
     safe_str(T(e_atrperm), buff, bp);
@@ -405,7 +414,7 @@ FUNCTION(fun_edefault)
     add_check("fun_edefault.attr_value");
     process_expression(buff, bp, &sp, thing, executor, executor,
                        PE_DEFAULT, PT_DEFAULT, pe_info);
-    mush_free(sbuf, "fun_edefault.attr_value");
+    mush_free((Malloc_t) sbuf, "fun_edefault.attr_value");
     return;
   }
   /* We couldn't get it. Evaluate args[1] and return it */
@@ -1365,32 +1374,6 @@ FUNCTION(fun_elock)
     safe_boolean(eval_lock(victim, it, ltype), buff, bp);
   else
     safe_str("#-1", buff, bp);
-  return;
-}
-
-/* ARGSUSED */
-FUNCTION(fun_testlock)
-{
-  dbref victim = match_thing(executor, args[1]);
-  boolexp elock = TRUE_BOOLEXP;
-
-  elock = parse_boolexp(executor, args[0], "Search");
-
-  if (elock == TRUE_BOOLEXP) {
-    safe_str("#-1 INVALID BOOLEXP", buff, bp);
-    return;
-  }
-
-  if (!GoodObject(victim)) {
-    safe_str("#-1", buff, bp);
-    return;
-  }
-  if (Can_Locate(executor, victim)) {
-    safe_boolean(eval_boolexp(victim, elock, executor), buff, bp);
-  } else {
-    safe_str("#-1", buff, bp);
-  }
-  free_boolexp(elock);
   return;
 }
 

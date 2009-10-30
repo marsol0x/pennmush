@@ -868,8 +868,8 @@ See also: give, @quota, MONEY
 
 See also: kill, BEING KILLED, @odeath, @adeath
 & @decompile
-  @decompile[</switch>] <object>[/<attribute-patterns>]
-  @decompile/prefix <object>[/<attribute-patterns>]=<prefix>
+  @decompile[</switch>] <object>[/<attribute-pattern>]
+  @decompile/prefix <object>[/<attribute-pattern>]=<prefix>
 
   This command produces a list of the commands that you would have to
   enter in order to recreate <object>. Useful for either copying objects
@@ -883,10 +883,10 @@ See also: kill, BEING KILLED, @odeath, @adeath
   You can either @decompile an entire object, or just certain parts of it.
   To @decompile just a few attributes, for example, you could type:
 
-      @decompile <object>/<attribute name> <attribute name2>
+      @decompile <object>/<attribute name>
 
-  including each attribute. You can also use wildcards in
-  <attribute name(s)> to @decompile a list of similarly-named attributes.
+  for each attribute. You can also use wildcards in <attribute name> to
+  @decompile a list of similarly-named attributes.
 
 (continued in help @decompile2)
 & @decompile2
@@ -4214,9 +4214,9 @@ See also: OPAQUE, FLAGS, @describe, @adescribe, @odescribe, DARK, LIGHT
   The /noeval switch prevents the MUSH from evaluating the message.
   The /override switch is admin-only, and overrides pagelocks and
   HAVEN.
-  The /port switch is admin-only, and will page a single port
-  descriptor directly, including connections that have not yet logged
-  into a player.
+  The /port switch is admin-only, and will page a port descriptor
+  directly, including connections that have not yet logged into a
+  player.
   
 See also: @lock, @alias, @pageformat, pose, :, ;, HAVEN, NOSPOOF, FLAGS
 & :

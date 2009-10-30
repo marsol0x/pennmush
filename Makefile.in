@@ -206,9 +206,6 @@ etags:
 ctags:
 	(cd src; make ctags)
 
-cscope:
-	cscope *.h hdrs/*.h src/*.c
-
 touchswitches:
 	@@TOUCH@ src/SWITCHES
 

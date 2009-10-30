@@ -11,7 +11,6 @@
 #define _GNU_SOURCE
 #include <string.h>
 #include <ctype.h>
-#include <stdlib.h>
 
 #include "conf.h"
 #include "externs.h"
@@ -115,17 +114,17 @@ look_exits(dbref player, dbref loc, const char *exit_name)
     process_expression(buff, &bp, &sp, loc, player, player,
                        PE_DEFAULT, PT_DEFAULT, NULL);
     *bp = '\0';
-    free(save);
+    free((Malloc_t) save);
     notify_by(loc, player, buff);
     for (j = 0; j < 10; j++) {
       global_eval_context.wenv[j] = wsave[j];
     }
     restore_global_regs("look_exits", rsave);
-    mush_free(tbuf1, "string");
-    mush_free(tbuf2, "string");
-    mush_free(nbuf, "string");
-    mush_free(arg, "string");
-    mush_free(buff, "string");
+    mush_free((Malloc_t) tbuf1, "string");
+    mush_free((Malloc_t) tbuf2, "string");
+    mush_free((Malloc_t) nbuf, "string");
+    mush_free((Malloc_t) arg, "string");
+    mush_free((Malloc_t) buff, "string");
     return;
   }
   /* Scan the room and see if there are any visible exits */
@@ -155,9 +154,9 @@ look_exits(dbref player, dbref loc, const char *exit_name)
   }
   if (total_count == 0) {
     /* No visible exits. We are outta here */
-    mush_free(tbuf1, "string");
-    mush_free(tbuf2, "string");
-    mush_free(nbuf, "string");
+    mush_free((Malloc_t) tbuf1, "string");
+    mush_free((Malloc_t) tbuf2, "string");
+    mush_free((Malloc_t) nbuf, "string");
     return;
   }
 
@@ -219,9 +218,9 @@ look_exits(dbref player, dbref loc, const char *exit_name)
   }
   *s2 = '\0';
   notify_by(loc, player, tbuf2);
-  mush_free(tbuf1, "string");
-  mush_free(tbuf2, "string");
-  mush_free(nbuf, "string");
+  mush_free((Malloc_t) tbuf1, "string");
+  mush_free((Malloc_t) tbuf2, "string");
+  mush_free((Malloc_t) nbuf, "string");
 }
 
 
@@ -280,15 +279,15 @@ look_contents(dbref player, dbref loc, const char *contents_name)
     process_expression(buff, &bp, &sp, loc, player, player,
                        PE_DEFAULT, PT_DEFAULT, NULL);
     *bp = '\0';
-    free(save);
+    free((Malloc_t) save);
     notify_by(loc, player, buff);
     for (j = 0; j < 10; j++) {
       global_eval_context.wenv[j] = wsave[j];
     }
     restore_global_regs("look_contents", rsave);
-    mush_free(arg, "string");
-    mush_free(arg2, "string");
-    mush_free(buff, "string");
+    mush_free((Malloc_t) arg, "string");
+    mush_free((Malloc_t) arg2, "string");
+    mush_free((Malloc_t) buff, "string");
     return;
   }
   /* check to see if there is anything there */
@@ -326,7 +325,7 @@ look_helper_veiled(dbref player, dbref thing __attribute__ ((__unused__)),
                    __attribute__ ((__unused__)))
 {
   char fbuf[BUFFER_LEN];
-  char *r;
+  char const *r;
 
   if (EX_PUBLIC_ATTRIBS &&
       !strcmp(AL_NAME(atr), "DESCRIBE") && !strcmp(pattern, "*"))
@@ -373,7 +372,7 @@ look_helper_veiled(dbref player, dbref thing __attribute__ ((__unused__)),
         notify_format(player, "%s [#%d%s]: %s", AL_NAME(atr),
                       Owner(AL_CREATOR(atr)), fbuf, r);
     }
-    free(r);
+    free((Malloc_t) r);
   }
   return 1;
 }
@@ -385,7 +384,7 @@ look_helper(dbref player, dbref thing __attribute__ ((__unused__)),
             __attribute__ ((__unused__)))
 {
   char fbuf[BUFFER_LEN];
-  char *r;
+  char const *r;
 
   if (EX_PUBLIC_ATTRIBS &&
       !strcmp(AL_NAME(atr), "DESCRIBE") && !strcmp(pattern, "*"))
@@ -411,7 +410,7 @@ look_helper(dbref player, dbref thing __attribute__ ((__unused__)),
       notify_format(player, "%s [#%d%s]: %s", AL_NAME(atr),
                     Owner(AL_CREATOR(atr)), fbuf, r);
   }
-  free(r);
+  free((Malloc_t) r);
   return 1;
 }
 
@@ -584,7 +583,7 @@ look_description(dbref player, dbref thing, const char *def,
     process_expression(buff, &bp, &ap, thing, player, player,
                        PE_DEFAULT, PT_DEFAULT, NULL);
     *bp = '\0';
-    free(asave);
+    free((Malloc_t) asave);
   }
   f = atr_get(thing, descformatname);
   if (f) {
@@ -597,7 +596,7 @@ look_description(dbref player, dbref thing, const char *def,
     process_expression(fbuff, &fbp, &ap, thing, player, player,
                        PE_DEFAULT, PT_DEFAULT, NULL);
     *fbp = '\0';
-    free(asave);
+    free((Malloc_t) asave);
     notify_by(thing, player, fbuff);
   } else if (a) {
     /* DESCRIBE only */
@@ -823,7 +822,7 @@ do_examine(dbref player, const char *xname, enum exam_type flag, int all,
     if (a) {
       r = safe_atr_value(a);
       notify(player, r);
-      free(r);
+      free((Malloc_t) r);
     }
   }
   if (ok) {
@@ -1036,15 +1035,15 @@ do_inventory(dbref player)
     process_expression(buff, &bp, &sp, player, player, player,
                        PE_DEFAULT, PT_DEFAULT, NULL);
     *bp = '\0';
-    free(save);
+    free((Malloc_t) save);
     notify(player, buff);
     for (j = 0; j < 10; j++) {
       global_eval_context.wenv[j] = wsave[j];
     }
     restore_global_regs("do_inventory", rsave);
-    mush_free(arg, "string");
-    mush_free(arg2, "string");
-    mush_free(buff, "string");
+    mush_free((Malloc_t) arg, "string");
+    mush_free((Malloc_t) arg2, "string");
+    mush_free((Malloc_t) buff, "string");
     return;
   }
 
@@ -1557,7 +1556,6 @@ do_decompile(dbref player, const char *xname, const char *prefix,
   dbref thing;
   const char *object = NULL;
   char *attrib, *name;
-  char *attrname;
   char dbnum[40];
 
   /* @decompile must always have an argument */
@@ -1586,19 +1584,16 @@ do_decompile(dbref player, const char *xname, const char *prefix,
 
   /* if we have an attribute arg specified, wild match on it */
   if (attrib && *attrib) {
-    attrname = attrib;
-    while ((attrib = split_token(&attrname, ' ')) != NULL) {
-      switch (dbflag) {
-      case DEC_DB:
-        decompile_atrs(player, thing, dbnum, attrib, prefix, skipdef);
-        break;
-      default:
-        if (IsRoom(thing))
-          decompile_atrs(player, thing, "here", attrib, prefix, skipdef);
-        else
-          decompile_atrs(player, thing, Name(thing), attrib, prefix, skipdef);
-        break;
-      }
+    switch (dbflag) {
+    case DEC_DB:
+      decompile_atrs(player, thing, dbnum, attrib, prefix, skipdef);
+      break;
+    default:
+      if (IsRoom(thing))
+        decompile_atrs(player, thing, "here", attrib, prefix, skipdef);
+      else
+        decompile_atrs(player, thing, Name(thing), attrib, prefix, skipdef);
+      break;
     }
     mush_free(name, "dd.string");
     return;

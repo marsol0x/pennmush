@@ -88,9 +88,6 @@
 #ifdef HAVE_FAM_H
 #include <fam.h>
 #endif
-#ifdef HAVE_POLL_H
-#include <poll.h>
-#endif
 
 #include "conf.h"
 
@@ -1195,11 +1192,11 @@ static void
 clearstrings(DESC *d)
 {
   if (d->output_prefix) {
-    mush_free(d->output_prefix, "userstring");
+    mush_free((Malloc_t) d->output_prefix, "userstring");
     d->output_prefix = 0;
   }
   if (d->output_suffix) {
-    mush_free(d->output_suffix, "userstring");
+    mush_free((Malloc_t) d->output_suffix, "userstring");
     d->output_suffix = 0;
   }
 }
@@ -1587,15 +1584,6 @@ process_output(DESC *d)
      * We need to know if the descriptor is waiting on input, though.
      * So let's find out
      */
-
-#ifdef HAVE_POLL
-    struct pollfd p;
-
-    p.fd = d->descriptor;
-    p.events = POLLIN;
-    p.revents = 0;
-    input_ready = poll(&p, 1, 0);   
-#else
     struct timeval pad;
     fd_set input_set;
 
@@ -1604,7 +1592,6 @@ process_output(DESC *d)
     FD_ZERO(&input_set);
     FD_SET(d->descriptor, &input_set);
     input_ready = select(d->descriptor + 1, &input_set, NULL, NULL, &pad);
-#endif
     if (input_ready < 0) {
       /* Well, shoot, we have no idea. Guess and proceed. */
       penn_perror("select in process_output");
@@ -2034,7 +2021,7 @@ process_input_helper(DESC *d, char *tbuf1, int got)
   if (p > d->raw_input) {
     d->raw_input_at = p;
   } else {
-    mush_free(d->raw_input, "descriptor_raw_input");
+    mush_free((Malloc_t) d->raw_input, "descriptor_raw_input");
     d->raw_input = 0;
     d->raw_input_at = 0;
   }
@@ -2120,7 +2107,7 @@ static void
 set_userstring(unsigned char **userstring, const char *command)
 {
   if (*userstring) {
-    mush_free(* userstring, "userstring");
+    mush_free((Malloc_t) * userstring, "userstring");
     *userstring = NULL;
   }
   while (*command && isspace((unsigned char) *command))
@@ -2672,42 +2659,25 @@ player_desc(dbref player)
  * \param message message to send.
  */
 void
-do_page_port(dbref player, dbref cause, const char *pc, const char *message, bool eval_msg)
+do_page_port(dbref player, const char *pc, const char *message)
 {
   int p, key;
   DESC *d;
   const char *gap;
   char tbuf[BUFFER_LEN], *tbp = tbuf;
-  char mbuf[BUFFER_LEN], *mbp = mbuf;
   dbref target = NOTHING;
 
   if (!Hasprivs(player)) {
     notify(player, T("Permission denied."));
     return;
   }
-
-  process_expression(tbuf, &tbp, &pc, player, cause, cause, PE_DEFAULT, PT_DEFAULT, NULL);
-  *tbp = '\0';
-  p = atoi(tbuf);
-  tbp = tbuf;
-
+  p = atoi(pc);
   if (p <= 0) {
     notify(player, T("That's not a port number."));
     return;
   }
 
-  if (!message) {
-    notify(player, T("What do you want to page with?"));
-    return;
-  }
-
-  if (eval_msg) {
-    process_expression(mbuf, &mbp, &message, player, cause, cause, PE_DEFAULT, PT_DEFAULT, NULL);
-    *mbp = '\0';
-    message = mbuf;
-  }
-
-  if (!*message) {
+  if (!message || !*message) {
     notify(player, T("What do you want to page with?"));
     return;
   }

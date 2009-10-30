@@ -693,7 +693,6 @@ FUNCTION(fun_merge)
       safe_chr(*(ptr++), buff, bp);
       break;
     case TAG_START:
-    case TAG_END:
       while (*ptr && *ptr != TAG_END) {
         safe_chr(*(ptr++), buff, bp);
       }
@@ -705,6 +704,22 @@ FUNCTION(fun_merge)
         while (*ptr && matched[(unsigned char) *ptr]) {
           ptr++;
           j++;
+          switch (*ptr) {
+          case ESC_CHAR:
+            safe_ansi_string(as, i, j, buff, bp);
+            i += j;
+            j = 0;
+            while (*ptr && *ptr != 'm')
+              safe_chr(*(ptr++), buff, bp);
+            break;
+          case TAG_START:
+            safe_ansi_string(as, i, j, buff, bp);
+            i += j;
+            j = 0;
+            while (*ptr && *ptr != TAG_END)
+              safe_chr(*(ptr++), buff, bp);
+            break;
+          }
         }
         if (j != 0) {
           safe_ansi_string(as, i, j, buff, bp);
@@ -1188,7 +1203,7 @@ FUNCTION(fun_foreach)
 
     if (!tmp) {
       safe_str(lp, buff, bp);
-      free(asave);
+      free((Malloc_t) asave);
       free_anon_attrib(attrib);
       global_eval_context.wenv[1] = tptr[1];
       return;
@@ -1223,7 +1238,7 @@ FUNCTION(fun_foreach)
   }
   if (*lp)
     safe_str(lp + 1, buff, bp);
-  free(asave);
+  free((Malloc_t) asave);
   free_anon_attrib(attrib);
   global_eval_context.wenv[0] = tptr[0];
   global_eval_context.wenv[1] = tptr[1];
