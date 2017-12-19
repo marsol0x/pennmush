@@ -1,0 +1,108 @@
+#ifndef SPACE_H
+/* ==================================================================================
+   $File: $
+   $Date: $
+   $Revision: $
+   $Creator: Marshel Helsper $
+   $Notice: $
+   ================================================================================== */
+
+#include "flags.h"
+
+#define SPACE_DLIST_INIT(n) \
+    (n)->Next = (n); \
+    (n)->Prev = (n);
+
+#define SPACE_DLIST_ADD(l, n) \
+    (n)->Prev = (l)->Prev; \
+    (n)->Next = (l); \
+    (l)->Prev->Next = (n); \
+    (l)->Prev = (n);
+
+#define SPACE_DLIST_REMOVE(n) \
+    (n)->Prev->Next = (n)->Next; \
+    (n)->Next->Prev = (n)->Prev;
+
+typedef enum
+{
+    SpaceObjectType_Star,
+    SpaceObjectType_Planet,
+    SpaceObjectType_Ship,
+
+    SpaceObjectType_Count,
+} space_object_type;
+
+typedef struct
+{
+    int X, Y, Z;
+} v3i;
+
+enum
+{
+    SpaceObjectAttribute_Console,
+    SpaceObjectAttribute_PosX,
+    SpaceObjectAttribute_PosY,
+    SpaceObjectAttribute_PosZ,
+    SpaceObjectAttribute_HeadX,
+    SpaceObjectAttribute_HeadY,
+    SpaceObjectAttribute_HeadZ,
+    SpaceObjectAttribute_Speed,
+
+    SpaceObjectAttribute_Count,
+};
+
+enum
+{
+    SpaceObjectDimension_Radius,
+    SpaceObjectDimension_SizeHeight,
+    SpaceObjectDimension_SizeWidth,
+    SpaceObjectDimension_SizeLength,
+
+    SpaceObjectDimension_Count,
+};
+
+typedef struct space_object_t
+{
+    struct space_object_t *Next, *Prev;
+
+    dbref Id;
+    dbref Console;
+    space_object_type Type;
+    v3i Position;
+    v3i Heading;
+    int Speed;
+
+    union
+    {
+        int Radius;
+        v3i Dim;
+    } Size;
+} space_object;
+
+#define SPACE_MAX_OBJECTS 64
+typedef struct space_room_t
+{
+    struct space_room_t *Next, *Prev;
+
+    dbref Id;
+
+    int ObjectCount;
+    space_object *Objects[SPACE_MAX_OBJECTS];
+} space_room;
+
+#define SPACE_MAX_ROOMS 64
+typedef struct
+{
+    dbref SpaceWizard;
+
+    int RoomCount;
+    space_room *Rooms[SPACE_MAX_ROOMS];
+} space_system;
+space_system SpaceSystem;
+
+void SpaceAddFlags(FLAGSPACE *flags);
+void SpaceStartup();
+bool SpaceUpdate(void *data);
+
+#define SPACE_H
+#endif
