@@ -7,7 +7,11 @@
    $Notice: $
    ================================================================================== */
 
+#include <math.h>
+
 #include "flags.h"
+
+#include "space_vector.h"
 
 #define SPACE_DLIST_INIT(n) \
     (n)->Next = (n); \
@@ -25,20 +29,16 @@
 
 typedef enum
 {
-    SpaceObjectType_Star,
-    SpaceObjectType_Planet,
     SpaceObjectType_Ship,
+    SpaceObjectType_Planet,
+    SpaceObjectType_Star,
 
     SpaceObjectType_Count,
 } space_object_type;
 
-typedef struct
-{
-    int X, Y, Z;
-} v3i;
-
 enum
 {
+    SpaceObjectAttribute_Type,
     SpaceObjectAttribute_Console,
     SpaceObjectAttribute_PosX,
     SpaceObjectAttribute_PosY,
@@ -46,6 +46,9 @@ enum
     SpaceObjectAttribute_HeadX,
     SpaceObjectAttribute_HeadY,
     SpaceObjectAttribute_HeadZ,
+    SpaceObjectAttribute_DestX,
+    SpaceObjectAttribute_DestY,
+    SpaceObjectAttribute_DestZ,
     SpaceObjectAttribute_Speed,
 
     SpaceObjectAttribute_Count,
@@ -68,9 +71,11 @@ typedef struct space_object_t
     dbref Id;
     dbref Console;
     space_object_type Type;
-    v3i Position;
-    v3i Heading;
-    int Speed;
+
+    v3f Destination;
+    v3f Position;
+    v3f Heading;
+    int Speed; // TODO(marshel): Should this be a float too?
 
     union
     {
@@ -94,6 +99,7 @@ typedef struct space_room_t
 typedef struct
 {
     dbref SpaceWizard;
+
 
     int RoomCount;
     space_room *Rooms[SPACE_MAX_ROOMS];

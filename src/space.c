@@ -6,6 +6,8 @@
    $Notice: $
    ================================================================================== */
 
+#include <math.h>
+
 #include "attrib.h"
 #include "dbdefs.h"
 #include "game.h"
@@ -16,8 +18,10 @@
 #include "strutil.h"
 
 #include "space.h"
+#include "space_vector.c"
 
 char *SpaceObjectAttributes[SpaceObjectAttribute_Count] = {
+    "SPACE`TYPE",
     "SPACE`CONSOLE",
     "SPACE`POS_X",
     "SPACE`POS_Y",
@@ -25,6 +29,9 @@ char *SpaceObjectAttributes[SpaceObjectAttribute_Count] = {
     "SPACE`HEAD_X",
     "SPACE`HEAD_Y",
     "SPACE`HEAD_Z",
+    "SPACE`DEST_X",
+    "SPACE`DEST_Y",
+    "SPACE`DEST_Z",
     "SPACE`SPEED",
 };
 
@@ -102,6 +109,11 @@ static void SpaceUpdateObjectFromAttributes(space_object *SpaceObject)
             char *AttributeString = atr_value(Attribute);
             switch (Index)
             {
+                case SpaceObjectAttribute_Type:
+                {
+                    SpaceObject->Type = atoi(AttributeString);
+                } break;
+
                 case SpaceObjectAttribute_Console:
                 {
                     SpaceObject->Console = parse_dbref(AttributeString);
@@ -109,32 +121,56 @@ static void SpaceUpdateObjectFromAttributes(space_object *SpaceObject)
 
                 case SpaceObjectAttribute_PosX:
                 {
-                    SpaceObject->Position.X = atoi(AttributeString);
+                    float Value = atof(AttributeString);
+                    SpaceObject->Position.X = isnan(Value) ? 0.0f : Value;
                 } break;
 
                 case SpaceObjectAttribute_PosY:
                 {
-                    SpaceObject->Position.Y = atoi(AttributeString);
+                    float Value = atof(AttributeString);
+                    SpaceObject->Position.Y = isnan(Value) ? 0.0f : Value;
                 } break;
 
                 case SpaceObjectAttribute_PosZ:
                 {
-                    SpaceObject->Position.Z = atoi(AttributeString);
+                    float Value = atof(AttributeString);
+                    SpaceObject->Position.Z = isnan(Value) ? 0.0f : Value;
                 } break;
 
                 case SpaceObjectAttribute_HeadX:
                 {
-                    SpaceObject->Heading.X = atoi(AttributeString);
+                    float Value = atof(AttributeString);
+                    SpaceObject->Heading.X = isnan(Value) ? 0.0f : Value;
                 } break;
 
                 case SpaceObjectAttribute_HeadY:
                 {
-                    SpaceObject->Heading.Y = atoi(AttributeString);
+                    float Value = atof(AttributeString);
+                    SpaceObject->Heading.Y = isnan(Value) ? 0.0f : Value;
                 } break;
 
                 case SpaceObjectAttribute_HeadZ:
                 {
-                    SpaceObject->Heading.Z = atoi(AttributeString);
+                    float Value = atof(AttributeString);
+                    SpaceObject->Heading.Z = isnan(Value) ? 0.0f : Value;
+                } break;
+
+                case SpaceObjectAttribute_DestX:
+                {
+                    float Value = atof(AttributeString);
+                    SpaceObject->Destination.X = isnan(Value) ? 0.0f : Value;
+                } break;
+
+                case SpaceObjectAttribute_DestY:
+                {
+                    float Value = atof(AttributeString);
+                    SpaceObject->Destination.Y = isnan(Value) ? 0.0f : Value;
+                } break;
+
+                case SpaceObjectAttribute_DestZ:
+                {
+                    float Value = atof(AttributeString);
+                    SpaceObject->Destination.Z = isnan(Value) ? 0.0f : Value;
                 } break;
 
                 case SpaceObjectAttribute_Speed:
@@ -204,37 +240,61 @@ static void SpaceSetAttributesFromObject(space_system *SpaceSystem, space_object
 
             case SpaceObjectAttribute_PosX:
             {
-                sprintf(Buffer, "%d", SpaceObject->Position.X);
+                sprintf(Buffer, "%f", SpaceObject->Position.X);
                 atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
             } break;
 
             case SpaceObjectAttribute_PosY:
             {
-                sprintf(Buffer, "%d", SpaceObject->Position.Y);
+                sprintf(Buffer, "%f", SpaceObject->Position.Y);
                 atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
             } break;
 
             case SpaceObjectAttribute_PosZ:
             {
-                sprintf(Buffer, "%d", SpaceObject->Position.Z);
+                sprintf(Buffer, "%f", SpaceObject->Position.Z);
                 atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
             } break;
 
             case SpaceObjectAttribute_HeadX:
             {
-                sprintf(Buffer, "%d", SpaceObject->Heading.X);
+                sprintf(Buffer, "%f", SpaceObject->Heading.X);
                 atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
             } break;
 
             case SpaceObjectAttribute_HeadY:
             {
-                sprintf(Buffer, "%d", SpaceObject->Heading.Y);
+                sprintf(Buffer, "%f", SpaceObject->Heading.Y);
                 atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
             } break;
 
             case SpaceObjectAttribute_HeadZ:
             {
-                sprintf(Buffer, "%d", SpaceObject->Heading.Z);
+                sprintf(Buffer, "%f", SpaceObject->Heading.Z);
+                atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
+            } break;
+
+            case SpaceObjectAttribute_DestX:
+            {
+                sprintf(Buffer, "%f", SpaceObject->Destination.X);
+                atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
+            } break;
+
+            case SpaceObjectAttribute_DestY:
+            {
+                sprintf(Buffer, "%f", SpaceObject->Destination.Y);
+                atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
+            } break;
+
+            case SpaceObjectAttribute_DestZ:
+            {
+                sprintf(Buffer, "%f", SpaceObject->Destination.Z);
+                atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
+            } break;
+
+            case SpaceObjectAttribute_Speed:
+            {
+                sprintf(Buffer, "%d", SpaceObject->Speed);
                 atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
             } break;
         }
@@ -315,6 +375,42 @@ static bool SpaceAddObjectToRoom(space_room *Room, space_object *SpaceObject)
     ++Room->ObjectCount;
 
     return true;
+}
+
+// TODO(marshel): Do we need to track ticks? For now we're assuming 1 second
+static void SpaceTickSpaceShip(space_object *Object, int TimeStep)
+{
+    // NOTE(marshel): Update position based on speed and heading
+    // TODO(marshel): The dumb way is to instantly update heading, which we are
+    // doing, but we should have some sort of turning speed and update the
+    // heading based on that.
+    // TODO(marshel): Acceleration
+
+    // NOTE(marshel): Stop is we're close to our destination
+    // TODO(marshel): Players might want to simple point at an object in space
+    // to set the heading so we will want to have a flag that determines
+    // whether or not to stop when the destination is reached
+    float DistanceToDestination = VectorDistance(Object->Position, Object->Destination);
+    if (DistanceToDestination < Object->Speed)
+    {
+        Object->Speed /= 2;
+    }
+
+    if (DistanceToDestination < 2.0f)
+    {
+        Object->Speed = 0;
+    }
+
+    // NOTE(marshel): Movement
+    v3f Heading = VectorSubtract(Object->Destination, Object->Position);
+    v3f NormalizedHeading = VectorNormal(Heading);
+    v3f Velocity = VectorMultiplyScalar(NormalizedHeading, Object->Speed);
+    Velocity = VectorMultiplyScalar(Velocity, TimeStep);
+    v3f NewPosition = VectorAdd(Object->Position, Velocity);
+
+    // NOTE(marshel): Save changes
+    Object->Heading = NormalizedHeading;
+    Object->Position = NewPosition;
 }
 
 bool SpaceUpdate(void *data)
@@ -401,9 +497,8 @@ bool SpaceUpdate(void *data)
         for (int ObjectIndex = 0; ObjectIndex < Room->ObjectCount; ++ObjectIndex)
         {
             space_object *Object = Room->Objects[ObjectIndex];
-            if (!RealGoodObject(Object->Id))
+            if (!RealGoodObject(Object->Id) || (Location(Object->Id) != Room->Id))
             {
-                // TODO(marshel): Handle removing deleted/garbage objects
                 memcpy(Room->Objects + ObjectIndex, Room->Objects + ObjectIndex + 1, (Room->ObjectCount - ObjectIndex - 1) * sizeof(*Object));
                 mush_free(Object, "Space Object");
                 --ObjectIndex;
@@ -411,9 +506,19 @@ bool SpaceUpdate(void *data)
                 continue;
             }
 
-            SpaceUpdateObjectFromAttributes(Object);
-            Object->Position.X += Object->Speed;
-            SpaceSetAttributesFromObject(&SpaceSystem, Object);
+            switch (Object->Type)
+            {
+                case SpaceObjectType_Ship:
+                {
+                    SpaceUpdateObjectFromAttributes(Object);
+                    SpaceTickSpaceShip(Object, 1);
+                    SpaceSetAttributesFromObject(&SpaceSystem, Object);
+                } break;
+
+                default:
+                {
+                } break;
+            }
         }
     }
 
