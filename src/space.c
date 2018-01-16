@@ -76,6 +76,9 @@ static void SpaceInitAttributes(space_system *SpaceSystem, dbref Id, dbref Conso
 {
     int Index;
 
+    // NOTE(marshel): Set initial SPACE` attribute tree to have the proper
+    // flags
+    atr_add(Id, "SPACE", "Space Attributes", SpaceSystem->SpaceWizard, AF_WIZARD | AF_MDARK | AF_NOPROG);
     for (Index = 0; Index < SpaceObjectAttribute_Count; ++Index)
     {
         atr_add(Id, SpaceObjectAttributes[Index], "0", SpaceSystem->SpaceWizard, 0);
