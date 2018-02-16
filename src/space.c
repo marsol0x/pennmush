@@ -19,6 +19,7 @@
 
 #include "space.h"
 #include "space_vector.c"
+#include "space_functions.c"
 
 char *SpaceObjectAttributes[SpaceObjectAttribute_Count] = {
     "SPACE`TYPE",
@@ -33,6 +34,7 @@ char *SpaceObjectAttributes[SpaceObjectAttribute_Count] = {
     "SPACE`DEST_Y",
     "SPACE`DEST_Z",
     "SPACE`SPEED",
+    "SPACE`PASSIVE_SENSOR_RANGE",
 };
 
 char *SpaceObjectDimensions[SpaceObjectDimension_Count] = {
@@ -180,6 +182,12 @@ static void SpaceUpdateObjectFromAttributes(space_object *SpaceObject)
                 {
                     SpaceObject->Speed = atoi(AttributeString);
                 } break;
+
+                case SpaceObjectAttribute_PassiveSensorRange:
+                {
+                    float Value = atof(AttributeString);
+                    SpaceObject->PassiveSensorRange = isnan(Value) ? 0.0f : Value;
+                } break;
             }
         }
     }
@@ -314,7 +322,7 @@ static space_object * SpaceNewObject(dbref Id)
     return Result;
 }
 
-static space_object * SpaceGetObjectFromRoomById(space_room *Room, dbref Id)
+space_object * SpaceGetObjectFromRoomById(space_room *Room, dbref Id)
 {
     space_object *Result = 0;
 

@@ -50,6 +50,7 @@ enum
     SpaceObjectAttribute_DestY,
     SpaceObjectAttribute_DestZ,
     SpaceObjectAttribute_Speed,
+    SpaceObjectAttribute_PassiveSensorRange,
 
     SpaceObjectAttribute_Count,
 };
@@ -76,6 +77,7 @@ typedef struct space_object_t
     v3f Position;
     v3f Heading;
     int Speed; // TODO(marshel): Should this be a float too?
+    float PassiveSensorRange;
 
     union
     {
@@ -87,8 +89,6 @@ typedef struct space_object_t
 #define SPACE_MAX_OBJECTS 64
 typedef struct space_room_t
 {
-    struct space_room_t *Next, *Prev;
-
     dbref Id;
 
     int ObjectCount;
@@ -100,15 +100,17 @@ typedef struct
 {
     dbref SpaceWizard;
 
-
     int RoomCount;
     space_room *Rooms[SPACE_MAX_ROOMS];
 } space_system;
 space_system SpaceSystem;
 
 void SpaceAddFlags(FLAGSPACE *flags);
+void SpaceAddFunctions();
 void SpaceStartup();
 bool SpaceUpdate(void *data);
+
+space_object * SpaceGetObjectFromRoomById(space_room *Room, dbref Id);
 
 #define SPACE_H
 #endif

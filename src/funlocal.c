@@ -22,6 +22,8 @@
 #include "function.h"
 #include "parse.h"
 
+#include "space.h"
+
 void local_functions(void);
 
 /* Here you can use the new add_function instead of hacking into function.c
@@ -42,4 +44,5 @@ local_functions(void)
 #ifdef EXAMPLE
   function_add("SILLY", local_fun_silly, 1, 1, FN_REG);
 #endif
+  SpaceAddFunctions();
 }
