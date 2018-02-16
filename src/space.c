@@ -69,8 +69,7 @@ static dbref SpaceFindSpaceWizard()
 
 void SpaceStartup()
 {
-    SpaceSystem.SpaceWizard = SpaceFindSpaceWizard();
-
+    SpaceSystem.SpaceWizard = NOTHING;
     sq_register_loop(1, SpaceUpdate, 0, 0);
 }
 
@@ -306,6 +305,12 @@ void SpaceSetAttributesFromObject(space_system *SpaceSystem, space_object *Space
             case SpaceObjectAttribute_Speed:
             {
                 sprintf(Buffer, "%d", SpaceObject->Speed);
+                atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
+            } break;
+
+            case SpaceObjectAttribute_PassiveSensorRange:
+            {
+                sprintf(Buffer, "%f", SpaceObject->PassiveSensorRange);
                 atr_add(Id, SpaceObjectAttributes[Index], Buffer, SpaceSystem->SpaceWizard, 0);
             } break;
         }
