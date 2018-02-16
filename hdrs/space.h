@@ -67,8 +67,6 @@ enum
 
 typedef struct space_object_t
 {
-    struct space_object_t *Next, *Prev;
-
     dbref Id;
     dbref Console;
     space_object_type Type;
@@ -77,6 +75,7 @@ typedef struct space_object_t
     v3f Position;
     v3f Heading;
     int Speed; // TODO(marshel): Should this be a float too?
+    int MaxSpeed;
     float PassiveSensorRange;
 
     union
@@ -110,6 +109,8 @@ void SpaceAddFunctions();
 void SpaceStartup();
 bool SpaceUpdate(void *data);
 
+void SpaceUpdateObjectFromAttributes(space_object *SpaceObject);
+void SpaceSetAttributesFromObject(space_system *SpaceSystem, space_object *SpaceObject);
 space_object * SpaceGetObjectFromRoomById(space_room *Room, dbref Id);
 
 #define SPACE_H

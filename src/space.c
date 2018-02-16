@@ -95,7 +95,7 @@ static void SpaceInitAttributes(space_system *SpaceSystem, dbref Id, dbref Conso
     }
 }
 
-static void SpaceUpdateObjectFromAttributes(space_object *SpaceObject)
+void SpaceUpdateObjectFromAttributes(space_object *SpaceObject)
 {
     if (!SpaceObject)
     {
@@ -233,7 +233,7 @@ static void SpaceUpdateObjectFromAttributes(space_object *SpaceObject)
 
 }
 
-static void SpaceSetAttributesFromObject(space_system *SpaceSystem, space_object *SpaceObject)
+void SpaceSetAttributesFromObject(space_system *SpaceSystem, space_object *SpaceObject)
 {
     int Index;
     dbref Id = SpaceObject->Id;
@@ -388,7 +388,6 @@ static bool SpaceAddObjectToRoom(space_room *Room, space_object *SpaceObject)
     return true;
 }
 
-// TODO(marshel): Do we need to track ticks? For now we're assuming 1 second
 static void SpaceTickSpaceShip(space_object *Object, int TimeStep)
 {
     // NOTE(marshel): Update position based on speed and heading
@@ -521,6 +520,9 @@ bool SpaceUpdate(void *data)
             {
                 case SpaceObjectType_Ship:
                 {
+                    // TODO(marshel): If I'm doing this every second, does it
+                    // make more sense to allocate space_objects on the stack
+                    // rather than storing them between updates?
                     SpaceUpdateObjectFromAttributes(Object);
                     SpaceTickSpaceShip(Object, 1);
                     SpaceSetAttributesFromObject(&SpaceSystem, Object);
