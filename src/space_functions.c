@@ -186,6 +186,31 @@ FUNCTION(space_fun_set_speed)
     SpaceSetAttributesFromObject(&SpaceSystem, &SpaceObject);
 }
 
+FUNCTION(space_fun_get_distance)
+{
+    dbref ObjectAId = parse_dbref(args[0]);
+    dbref ObjectBId = parse_dbref(args[1]);
+
+    if (!SpaceIsSpaceObject(ObjectAId))
+    {
+        safe_format(buff, bp, "#-1 First object is not a space object.");
+        return;
+    }
+
+    if (!SpaceIsSpaceObject(ObjectBId))
+    {
+        safe_format(buff, bp, "#-1 Second object is not a space object.");
+        return;
+    }
+
+    space_object ObjectA, ObjectB;
+    SpaceSetObjectFromAttributes(&ObjectA, ObjectAId);
+    SpaceSetObjectFromAttributes(&ObjectB, ObjectBId);
+
+    float Distance = VectorDistance(ObjectA.Position, ObjectB.Position);
+    safe_format(buff, bp, "%f", Distance);
+}
+
 void SpaceAddFunctions()
 {
     // TODO(marshel): Document these in help files
@@ -195,4 +220,5 @@ void SpaceAddFunctions()
     function_add("SPACE_OBJECT_SET_DESTINATION",    space_fun_set_destination,    4, 4, FN_WIZARD);
     function_add("SPACE_OBJECT_SET_POSITION",       space_fun_set_position,       4, 4, FN_WIZARD);
     function_add("SPACE_OBJECT_SET_SPEED",          space_fun_set_speed,          2, 2, FN_WIZARD);
+    function_add("SPACE_OBJECT_GET_DISTANCE",       space_fun_get_distance,       2, 2, FN_WIZARD);
 }
