@@ -317,30 +317,9 @@ void SpaceSetAttributesFromObject(space_system *SpaceSystem, space_object *Space
     }
 }
 
-static space_object * SpaceNewObject(dbref Id)
+bool SpaceIsObjectInRoom(space_room *Room, dbref Id)
 {
-    space_object *Result = mush_malloc(sizeof(*Result), "Space Object");
-    memset(Result, 0, sizeof(*Result));
-    Result->Id = Id;
-    Result->Console = NOTHING;
-
-    return Result;
-}
-
-space_object * SpaceGetObjectFromRoomById(space_room *Room, dbref Id)
-{
-    space_object *Result = 0;
-
-    for (int Index = 0; Index < Room->ObjectCount; ++Index)
-    {
-        if (Room->Objects[Index]->Id == Id)
-        {
-            Result = Room->Objects[Index];
-            break;
-        }
-    }
-
-    return Result;
+    return Room->Id == Location(Id);
 }
 
 static bool SpaceAddRoom(space_system *SpaceSystem, space_room *Room)
@@ -356,7 +335,7 @@ static bool SpaceAddRoom(space_system *SpaceSystem, space_room *Room)
     return true;
 }
 
-static space_room * SpaceFindRoomById(space_system *SpaceSystem, dbref Id)
+space_room * SpaceFindRoomById(space_system *SpaceSystem, dbref Id)
 {
     space_room *Result = 0;
 
@@ -372,25 +351,44 @@ static space_room * SpaceFindRoomById(space_system *SpaceSystem, dbref Id)
     return Result;
 }
 
-static bool SpaceAddObjectToRoom(space_room *Room, space_object *SpaceObject)
+bool SpaceAddObjectToRoom(space_room *Room, dbref SpaceObjectId)
 {
     if (Room->ObjectCount + 1 > SPACE_MAX_OBJECTS)
     {
         return false;
     }
 
-    for (int Index = 0; Index < Room->ObjectCount; ++Index)
+
+    for (int Index = 0;
+         Index < Room->ObjectCount;
+         ++Index)
     {
-        if (Room->Objects[Index]->Id == SpaceObject->Id)
+        if (Room->Objects[Index] == SpaceObjectId)
         {
             return false;
         }
     }
 
-    Room->Objects[Room->ObjectCount] = SpaceObject;
+    Room->Objects[Room->ObjectCount] = SpaceObjectId;
     ++Room->ObjectCount;
 
     return true;
+}
+
+void SpaceRemoveObjectFromRoom(space_room *Room, dbref ObjectId)
+{
+    for (int ObjectIndex = 0;
+         ObjectIndex < Room->ObjectCount;
+         ++ObjectIndex)
+    {
+        dbref Object = Room->Objects[ObjectIndex];
+        if (Object == ObjectId)
+        {
+            Room->Objects[ObjectIndex] = Room->Objects[Room->ObjectCount - 1];
+            --Room->ObjectCount;
+            break;
+        }
+    }
 }
 
 static void SpaceTickSpaceShip(space_object *Object, int TimeStep)
@@ -399,12 +397,13 @@ static void SpaceTickSpaceShip(space_object *Object, int TimeStep)
     // TODO(marshel): The dumb way is to instantly update heading, which we are
     // doing, but we should have some sort of turning speed and update the
     // heading based on that.
-    // TODO(marshel): Acceleration
+    // TODO(marshel): Acceleration?
 
     // NOTE(marshel): Stop is we're close to our destination
     // TODO(marshel): Players might want to simple point at an object in space
     // to set the heading so we will want to have a flag that determines
     // whether or not to stop when the destination is reached
+    // TODO(marshel): Allow for non-autopilot travel
     float DistanceToDestination = VectorDistance(Object->Position, Object->Destination);
     if (DistanceToDestination < Object->Speed)
     {
@@ -481,15 +480,9 @@ bool SpaceUpdate(void *data)
 
                 if (Room)
                 {
-                    space_object *SpaceObject = SpaceGetObjectFromRoomById(Room, Id);
-                    if (!SpaceObject)
+                    if (SpaceIsObjectInRoom(Room, Id))
                     {
-                        SpaceObject = SpaceNewObject(Id);
-                        if (!SpaceAddObjectToRoom(Room, SpaceObject))
-                        {
-                            // NOTE(marshel): If we fail we've hit the max
-                            mush_free(SpaceObject, "Space Object");
-                        }
+                        SpaceAddObjectToRoom(Room, Id);
                     }
                 }
             }
@@ -511,26 +504,29 @@ bool SpaceUpdate(void *data)
 
         for (int ObjectIndex = 0; ObjectIndex < Room->ObjectCount; ++ObjectIndex)
         {
-            space_object *Object = Room->Objects[ObjectIndex];
-            if (!RealGoodObject(Object->Id) || (Location(Object->Id) != Room->Id))
+            dbref ObjectId = Room->Objects[ObjectIndex];
+            if (!RealGoodObject(ObjectId) || (Location(ObjectId) != Room->Id))
             {
-                memcpy(Room->Objects + ObjectIndex, Room->Objects + ObjectIndex + 1, (Room->ObjectCount - ObjectIndex - 1) * sizeof(*Object));
-                mush_free(Object, "Space Object");
+                SpaceRemoveObjectFromRoom(Room, ObjectId);
                 --ObjectIndex;
-                --Room->ObjectCount;
                 continue;
             }
 
-            switch (Object->Type)
+            space_object Object;
+            memset(&Object, 0, sizeof(space_object));
+            Object.Id = ObjectId;
+            SpaceUpdateObjectFromAttributes(&Object);
+
+            switch (Object.Type)
             {
                 case SpaceObjectType_Ship:
                 {
                     // TODO(marshel): If I'm doing this every second, does it
                     // make more sense to allocate space_objects on the stack
                     // rather than storing them between updates?
-                    SpaceUpdateObjectFromAttributes(Object);
-                    SpaceTickSpaceShip(Object, 1);
-                    SpaceSetAttributesFromObject(&SpaceSystem, Object);
+                    SpaceUpdateObjectFromAttributes(&Object);
+                    SpaceTickSpaceShip(&Object, 1);
+                    SpaceSetAttributesFromObject(&SpaceSystem, &Object);
                 } break;
 
                 default:

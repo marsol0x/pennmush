@@ -73,7 +73,7 @@ typedef struct space_object_t
 
     v3f Destination;
     v3f Position;
-    v3f Heading;
+    v3f Heading; // TODO(marshel): Replace this with something relative to the local star in a system
     int Speed; // TODO(marshel): Should this be a float too?
     int MaxSpeed;
     float PassiveSensorRange;
@@ -91,7 +91,7 @@ typedef struct space_room_t
     dbref Id;
 
     int ObjectCount;
-    space_object *Objects[SPACE_MAX_OBJECTS];
+    dbref Objects[SPACE_MAX_OBJECTS]; // TODO(marshel): Replace this with a dynamic array of dbrefs
 } space_room;
 
 #define SPACE_MAX_ROOMS 64
@@ -100,7 +100,7 @@ typedef struct
     dbref SpaceWizard;
 
     int RoomCount;
-    space_room *Rooms[SPACE_MAX_ROOMS];
+    space_room *Rooms[SPACE_MAX_ROOMS]; // TODO(marshel): Replace this with a dynamic arary of dbrefs
 } space_system;
 space_system SpaceSystem;
 
@@ -111,7 +111,9 @@ bool SpaceUpdate(void *data);
 
 void SpaceUpdateObjectFromAttributes(space_object *SpaceObject);
 void SpaceSetAttributesFromObject(space_system *SpaceSystem, space_object *SpaceObject);
-space_object * SpaceGetObjectFromRoomById(space_room *Room, dbref Id);
+space_room * SpaceFindRoomById(space_system *SpaceSystem, dbref Id);
+bool SpaceAddObjectToRoom(space_room *Room, dbref SpaceObjectId);
+void SpaceRemoveObjectFromRoom(space_room *Room, dbref ObjectId);
 
 #define SPACE_H
 #endif
