@@ -75,12 +75,10 @@ void SpaceStartup()
 
 static void SpaceInitAttributes(space_system *SpaceSystem, dbref Id, dbref Console)
 {
-    int Index;
-
     // NOTE(marshel): Set initial SPACE` attribute tree to have the proper
     // flags
     atr_add(Id, "SPACE", "Space Attributes", SpaceSystem->SpaceWizard, AF_WIZARD | AF_MDARK | AF_NOPROG);
-    for (Index = 0; Index < SpaceObjectAttribute_Count; ++Index)
+    for (int Index = 0; Index < SpaceObjectAttribute_Count; ++Index)
     {
         atr_add(Id, SpaceObjectAttributes[Index], "0", SpaceSystem->SpaceWizard, 0);
     }
@@ -101,10 +99,8 @@ void SpaceUpdateObjectFromAttributes(space_object *SpaceObject)
         return;
     }
 
-    int Index;
     dbref Id = SpaceObject->Id;
-
-    for (Index = 0; Index < SpaceObjectAttribute_Count; ++Index)
+    for (int Index = 0; Index < SpaceObjectAttribute_Count; ++Index)
     {
         ATTR *Attribute = atr_get_noparent(Id, SpaceObjectAttributes[Index]);
 
@@ -192,7 +188,7 @@ void SpaceUpdateObjectFromAttributes(space_object *SpaceObject)
     }
 
     bool HasRadius = false;
-    for (Index = 0; Index < SpaceObjectDimension_Count; ++Index)
+    for (int Index = 0; Index < SpaceObjectDimension_Count; ++Index)
     {
         ATTR *Attribute = atr_get_noparent(Id, SpaceObjectAttributes[Index]);
 
@@ -234,11 +230,10 @@ void SpaceUpdateObjectFromAttributes(space_object *SpaceObject)
 
 void SpaceSetAttributesFromObject(space_system *SpaceSystem, space_object *SpaceObject)
 {
-    int Index;
     dbref Id = SpaceObject->Id;
     char Buffer[BUFFER_LEN] = {0};
 
-    for (Index = 0; Index < SpaceObjectAttribute_Count; ++Index)
+    for (int Index = 0; Index < SpaceObjectAttribute_Count; ++Index)
     {
         switch (Index)
         {
@@ -317,7 +312,7 @@ void SpaceSetAttributesFromObject(space_system *SpaceSystem, space_object *Space
     }
 }
 
-static void SpaceTickSpaceShip(space_object *Object, int TimeStep)
+static void SpaceTickSpaceShip(space_system *SpaceSystem, space_object *Object, int TimeStep)
 {
     // NOTE(marshel): Update position based on speed and heading
     // TODO(marshel): The dumb way is to instantly update heading, which we are
@@ -351,6 +346,7 @@ static void SpaceTickSpaceShip(space_object *Object, int TimeStep)
     // NOTE(marshel): Save changes
     Object->Heading = NormalizedHeading;
     Object->Position = NewPosition;
+    SpaceSetAttributesFromObject(SpaceSystem, Object);
 }
 
 bool SpaceUpdate(void *data)
@@ -392,26 +388,31 @@ bool SpaceUpdate(void *data)
              ObjectId != -1;
              ObjectId = Next(ObjectId))
         {
-            space_object Object;
-            memset(&Object, 0, sizeof(space_object));
-            Object.Id = ObjectId;
-            SpaceUpdateObjectFromAttributes(&Object);
-
-            switch (Object.Type)
+            if (SpaceIsSpaceObject(ObjectId))
             {
-                case SpaceObjectType_Ship:
-                {
-                    // TODO(marshel): If I'm doing this every second, does it
-                    // make more sense to allocate space_objects on the stack
-                    // rather than storing them between updates?
-                    SpaceUpdateObjectFromAttributes(&Object);
-                    SpaceTickSpaceShip(&Object, 1);
-                    SpaceSetAttributesFromObject(&SpaceSystem, &Object);
-                } break;
+                space_object Object;
+                memset(&Object, 0, sizeof(space_object));
+                Object.Id = ObjectId;
+                SpaceUpdateObjectFromAttributes(&Object);
 
-                default:
+                switch (Object.Type)
                 {
-                } break;
+                    case SpaceObjectType_Ship:
+                    {
+                        SpaceTickSpaceShip(&SpaceSystem, &Object, 1);
+                    } break;
+
+                    case SpaceObjectType_Planet:
+                    {
+                        // TODO(marshel): Planet orbit stuff goes here
+                    } break;
+
+                    default:
+                    {
+                        // NOTE(marshel): Do nothing if the object type isn't handled.
+                        // TODO(marshel): Maybe log this in a way that informs connected Wizards?
+                    } break;
+                }
             }
         }
     }
