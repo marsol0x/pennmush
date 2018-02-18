@@ -32,7 +32,6 @@ FUNCTION(space_fun_sensors)
 {
     dbref SpaceShipId = parse_dbref(args[0]);
     dbref SpaceShipLocationId = Location(SpaceShipId);
-    space_room *SpaceShipLocation = 0;
 
     if (!SpaceIsSpaceObject(SpaceShipId))
     {
@@ -40,25 +39,13 @@ FUNCTION(space_fun_sensors)
         return;
     }
 
-    for (int RoomIndex = 0;
-         RoomIndex < SpaceSystem.RoomCount;
-         ++RoomIndex)
-    {
-        space_room *Room = SpaceSystem.Rooms[RoomIndex];
-        if (Room && Room->Id == SpaceShipLocationId)
-        {
-            SpaceShipLocation = Room;
-            break;
-        }
-    }
-
     // TODO(marshel): Consider creating a new space_object on the stack and
     // filling it in
-    for (int ObjectIndex = 0;
-         ObjectIndex < SpaceShipLocation->ObjectCount;
-         ++ObjectIndex)
+    for (dbref ObjectId = Contents(SpaceShipLocationId);
+         ObjectId != -1;
+         ObjectId = Next(ObjectId))
     {
-        dbref ObjectId = SpaceShipLocation->Objects[ObjectIndex];
+        if (!SpaceIsSpaceObject(ObjectId)) { continue; }
         if (ObjectId == SpaceShipId) { continue; }
 
         space_object SpaceShipObject, Object;
@@ -230,18 +217,6 @@ FUNCTION(space_fun_land)
         return;
     }
 
-    space_room *Room = 0;
-    for (int RoomIndex = 0;
-         RoomIndex < SpaceSystem.RoomCount;
-         ++RoomIndex)
-    {
-        if (SpaceSystem.Rooms[RoomIndex]->Id == Location(SpaceObjectId))
-        {
-            Room = SpaceSystem.Rooms[RoomIndex];
-        }
-    }
-
-    SpaceRemoveObjectFromRoom(Room, SpaceObjectId);
     moveto(SpaceObjectId, LandingZoneId, enactor, "Space Ship Landing");
 }
 
@@ -273,8 +248,6 @@ FUNCTION(space_fun_takeoff)
         return;
     }
 
-    space_room *Room = SpaceFindRoomById(&SpaceSystem, Location(PlanetId));
-    SpaceAddObjectToRoom(Room, SpaceObjectId);
     moveto(SpaceObjectId, Location(PlanetId), enactor, "Space Ship Takeoff");
 }
 

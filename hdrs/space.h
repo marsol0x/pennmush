@@ -85,22 +85,13 @@ typedef struct space_object_t
     } Size;
 } space_object;
 
-#define SPACE_MAX_OBJECTS 64
-typedef struct space_room_t
-{
-    dbref Id;
-
-    int ObjectCount;
-    dbref Objects[SPACE_MAX_OBJECTS]; // TODO(marshel): Replace this with a dynamic array of dbrefs
-} space_room;
-
 #define SPACE_MAX_ROOMS 64
 typedef struct
 {
     dbref SpaceWizard;
 
     int RoomCount;
-    space_room *Rooms[SPACE_MAX_ROOMS]; // TODO(marshel): Replace this with a dynamic arary of dbrefs
+    dbref Rooms[SPACE_MAX_ROOMS]; // TODO(marshel): Replace this with a dynamic arary of dbrefs
 } space_system;
 space_system SpaceSystem;
 
@@ -111,9 +102,6 @@ bool SpaceUpdate(void *data);
 
 void SpaceUpdateObjectFromAttributes(space_object *SpaceObject);
 void SpaceSetAttributesFromObject(space_system *SpaceSystem, space_object *SpaceObject);
-space_room * SpaceFindRoomById(space_system *SpaceSystem, dbref Id);
-bool SpaceAddObjectToRoom(space_room *Room, dbref SpaceObjectId);
-void SpaceRemoveObjectFromRoom(space_room *Room, dbref ObjectId);
 
 #define SPACE_H
 #endif

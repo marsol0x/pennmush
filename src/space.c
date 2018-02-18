@@ -317,80 +317,6 @@ void SpaceSetAttributesFromObject(space_system *SpaceSystem, space_object *Space
     }
 }
 
-bool SpaceIsObjectInRoom(space_room *Room, dbref Id)
-{
-    return Room->Id == Location(Id);
-}
-
-static bool SpaceAddRoom(space_system *SpaceSystem, space_room *Room)
-{
-    if (SpaceSystem->RoomCount + 1 > SPACE_MAX_ROOMS)
-    {
-        return false;
-    }
-
-    SpaceSystem->Rooms[SpaceSystem->RoomCount] = Room;
-    ++SpaceSystem->RoomCount;
-
-    return true;
-}
-
-space_room * SpaceFindRoomById(space_system *SpaceSystem, dbref Id)
-{
-    space_room *Result = 0;
-
-    for (int Index = 0; Index < SpaceSystem->RoomCount; ++Index)
-    {
-        if (SpaceSystem->Rooms[Index]->Id == Id)
-        {
-            Result = SpaceSystem->Rooms[Index];
-            break;
-        }
-    }
-
-    return Result;
-}
-
-bool SpaceAddObjectToRoom(space_room *Room, dbref SpaceObjectId)
-{
-    if (Room->ObjectCount + 1 > SPACE_MAX_OBJECTS)
-    {
-        return false;
-    }
-
-
-    for (int Index = 0;
-         Index < Room->ObjectCount;
-         ++Index)
-    {
-        if (Room->Objects[Index] == SpaceObjectId)
-        {
-            return false;
-        }
-    }
-
-    Room->Objects[Room->ObjectCount] = SpaceObjectId;
-    ++Room->ObjectCount;
-
-    return true;
-}
-
-void SpaceRemoveObjectFromRoom(space_room *Room, dbref ObjectId)
-{
-    for (int ObjectIndex = 0;
-         ObjectIndex < Room->ObjectCount;
-         ++ObjectIndex)
-    {
-        dbref Object = Room->Objects[ObjectIndex];
-        if (Object == ObjectId)
-        {
-            Room->Objects[ObjectIndex] = Room->Objects[Room->ObjectCount - 1];
-            --Room->ObjectCount;
-            break;
-        }
-    }
-}
-
 static void SpaceTickSpaceShip(space_object *Object, int TimeStep)
 {
     // NOTE(marshel): Update position based on speed and heading
@@ -429,89 +355,43 @@ static void SpaceTickSpaceShip(space_object *Object, int TimeStep)
 
 bool SpaceUpdate(void *data)
 {
-    dbref Id;
-
     if (SpaceSystem.SpaceWizard == NOTHING)
     {
         SpaceSystem.SpaceWizard = SpaceFindSpaceWizard();
         return false;
     }
 
-    // TODO(marshel):
-    //
-    // This can be much better. We really should only be capturing the dbref of
-    // our SPACE objects. We should init the SPACE attributes on all SPACE
-    // objects that do not have them, but that's all we should be doing in
-    // terms of attributes. For everything else we capture the rooms
-    // themselves. Then on each pass we simple iterate over the SPACE objects
-    // in the room, get the attributes, do the thing, save the changes.
-    //
-    // Update all objects before checking collision
-    for (Id = 0; Id < db_top; ++Id)
+    SpaceSystem.RoomCount = 0;
+
+    for (dbref Id = 0; Id < db_top; ++Id)
     {
-        if (RealGoodObject(Id) && IS(Id, TYPE_THING, "SPACE"))
+        if (RealGoodObject(Id))
         {
-            ATTR *SpaceAttributes = atr_get_noparent(Id, "SPACE");
-            if (!SpaceAttributes)
+            if (IS(Id, TYPE_THING, "SPACE"))
             {
-                SpaceInitAttributes(&SpaceSystem, Id, NOTHING);
+                ATTR *SpaceAttributes = atr_get_noparent(Id, "SPACE");
+                if (!SpaceAttributes)
+                {
+                    SpaceInitAttributes(&SpaceSystem, Id, NOTHING);
+                }
             }
 
-            dbref RoomId = Location(Id);
-            if (IS(RoomId, TYPE_ROOM, "SPACE"))
+            if (IS(Id, TYPE_ROOM, "SPACE"))
             {
-                space_room *Room = SpaceFindRoomById(&SpaceSystem, RoomId);
-                if (!Room)
-                {
-                    if (SpaceSystem.RoomCount + 1 < SPACE_MAX_ROOMS)
-                    {
-                        Room = mush_malloc(sizeof(*Room), "Space Room");
-                        memset(Room, 0, sizeof(*Room));
-                        Room->Id = RoomId;
-
-                        if (!SpaceAddRoom(&SpaceSystem, Room))
-                        {
-                            // NOTE(marshel): If we fail to add the room we've hit
-                            // our max, free the memory
-                            mush_free(Room, "Space Room");
-                        }
-                    }
-                }
-
-                if (Room)
-                {
-                    if (SpaceIsObjectInRoom(Room, Id))
-                    {
-                        SpaceAddObjectToRoom(Room, Id);
-                    }
-                }
+                SpaceSystem.Rooms[SpaceSystem.RoomCount] = Id;
+                ++SpaceSystem.RoomCount;
             }
         }
     }
 
     for (int RoomIndex = 0; RoomIndex < SpaceSystem.RoomCount; ++RoomIndex)
     {
-        space_room *Room = SpaceSystem.Rooms[RoomIndex];
+        dbref Room = SpaceSystem.Rooms[RoomIndex];
 
-        if (!RealGoodObject(Room->Id))
+        for (dbref ObjectId = Contents(Room);
+             ObjectId != -1;
+             ObjectId = Next(ObjectId))
         {
-            memcpy(SpaceSystem.Rooms + RoomIndex, SpaceSystem.Rooms + RoomIndex + 1, (SpaceSystem.RoomCount - RoomIndex - 1) * sizeof(*Room));
-            mush_free(Room, "Space Room");
-            --RoomIndex;
-            --SpaceSystem.RoomCount;
-            continue;
-        }
-
-        for (int ObjectIndex = 0; ObjectIndex < Room->ObjectCount; ++ObjectIndex)
-        {
-            dbref ObjectId = Room->Objects[ObjectIndex];
-            if (!RealGoodObject(ObjectId) || (Location(ObjectId) != Room->Id))
-            {
-                SpaceRemoveObjectFromRoom(Room, ObjectId);
-                --ObjectIndex;
-                continue;
-            }
-
             space_object Object;
             memset(&Object, 0, sizeof(space_object));
             Object.Id = ObjectId;
